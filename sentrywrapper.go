@@ -28,8 +28,8 @@ func New(dsn string, options ...Option) (*Wrapper, error) {
 	return w, nil
 }
 
-func (w *Wrapper) Initialize() error {
-	return sentry.Init(sentry.ClientOptions{
+func (w *Wrapper) Initialize() (*sentry.Client, error) {
+	return sentry.NewClient(sentry.ClientOptions{
 		Dsn:              w.dsn,
 		Environment:      w.environment,
 		Release:          w.release,
@@ -37,6 +37,24 @@ func (w *Wrapper) Initialize() error {
 		SampleRate:       w.sampleRate,
 		MaxBreadcrumbs:   w.maxBreadcrumbs,
 		AttachStacktrace: w.attachStacktrace,
+	})
+}
+
+func (w *Wrapper) SetUser(user sentry.User) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetUser(user)
+	})
+}
+
+func (w *Wrapper) SetTag(key, value string) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetTag(key, value)
+	})
+}
+
+func (w *Wrapper) SetTags(tags map[string]string) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetTags(tags)
 	})
 }
 
