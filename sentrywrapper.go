@@ -40,6 +40,24 @@ func (w *Wrapper) Initialize() (*sentry.Client, error) {
 	})
 }
 
+func (w *Wrapper) SetUser(user sentry.User) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetUser(user)
+	})
+}
+
+func (w *Wrapper) SetTag(key, value string) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetTag(key, value)
+	})
+}
+
+func (w *Wrapper) SetTags(tags map[string]string) {
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetTags(tags)
+	})
+}
+
 func (w *Wrapper) CaptureException(err error) {
 	sentry.CaptureException(err)
 }
