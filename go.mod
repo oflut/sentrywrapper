@@ -1,4 +1,4 @@
-module sentrywrapper
+module github.com/oflut/sentrywrapper
 
 go 1.21
 
