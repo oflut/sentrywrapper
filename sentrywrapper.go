@@ -3,12 +3,14 @@ package sentrywrapper
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 )
 
+// New returns a wrapper type with given dns and options
 func New(dsn string, options ...Option) (*Wrapper, error) {
 	if dsn == "" {
 		return nil, errors.New("dsn must be provided")
@@ -80,7 +82,11 @@ func (w *Wrapper) WithContext(ctx context.Context) context.Context {
 
 func (w *Wrapper) Recover() {
 	if err := recover(); err != nil {
-		w.CaptureException(err.(error))
+		if e, ok := err.(error); ok {
+			w.CaptureException(e)
+		} else {
+			w.CaptureMessage(fmt.Sprintf("%v", err))
+		}
 		log.Printf("Recovered from panic: %v", err)
 	}
 }
