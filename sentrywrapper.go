@@ -2,13 +2,17 @@ package sentrywrapper
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 )
 
-func New(dsn string, options ...Option) *Wrapper {
+func New(dsn string, options ...Option) (*Wrapper, error) {
+	if dsn == "" {
+		return nil, errors.New("dsn must be provided")
+	}
 	w := &Wrapper{
 		dsn:              dsn,
 		environment:      "production",
@@ -21,7 +25,7 @@ func New(dsn string, options ...Option) *Wrapper {
 		option(w)
 	}
 
-	return w
+	return w, nil
 }
 
 func (w *Wrapper) Initialize() error {
