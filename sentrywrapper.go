@@ -2,7 +2,6 @@ package sentrywrapper
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -13,7 +12,7 @@ type SentryWrapper struct {
 	client *sentry.Client
 }
 
-// New returns a wrapper type with given dns and options
+// New returns a wrapper type with given dsn and options
 func New(dsn string, opts ...Option) (*SentryWrapper, error) {
 	clientOptions := sentry.ClientOptions{
 		Dsn: dsn,
@@ -54,12 +53,12 @@ func (sw *SentryWrapper) SetTags(tags map[string]string) {
 	})
 }
 
-func (sw *SentryWrapper) CaptureException(err error) {
-	sentry.CaptureException(err)
+func (sw *SentryWrapper) CaptureException(err error) *sentry.EventID {
+	return sw.client.CaptureException(err, nil, nil)
 }
 
-func (sw *SentryWrapper) CaptureMessage(message string) {
-	sentry.CaptureMessage(message)
+func (sw *SentryWrapper) CaptureMessage(message string) *sentry.EventID {
+	return sw.client.CaptureMessage(message, nil, nil)
 }
 
 func (sw *SentryWrapper) AddBreadcrumb(breadcrumb *sentry.Breadcrumb) {
@@ -67,20 +66,25 @@ func (sw *SentryWrapper) AddBreadcrumb(breadcrumb *sentry.Breadcrumb) {
 }
 
 func (sw *SentryWrapper) Flush(timeout time.Duration) bool {
-	return sentry.Flush(timeout)
+	return sw.client.Flush(timeout)
 }
 
 func (sw *SentryWrapper) WithContext(ctx context.Context) context.Context {
-	return sentry.SetHubOnContext(ctx, sentry.CurrentHub().Clone())
+	hub := sentry.GetHubFromContext(ctx)
+	if hub == nil {
+		hub = sentry.CurrentHub().Clone()
+		ctx = sentry.SetHubOnContext(ctx, hub)
+	}
+	hub.BindClient(sw.client)
+	return ctx
 }
 
 func (sw *SentryWrapper) Recover() {
 	if err := recover(); err != nil {
-		if e, ok := err.(error); ok {
-			sw.CaptureException(e)
-		} else {
-			sw.CaptureMessage(fmt.Sprintf("%v", err))
+		eventID := sw.client.Recover(err, nil, nil)
+		if eventID != nil {
+			log.Printf("Captured panic (ID: %s): %v", *eventID, err)
 		}
-		log.Printf("Recovered from panic: %v", err)
+		panic(err)
 	}
 }
