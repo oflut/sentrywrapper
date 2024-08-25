@@ -1,49 +1,35 @@
 package sentrywrapper
 
-type Wrapper struct {
-	dsn              string
-	environment      string
-	release          string
-	debug            bool
-	sampleRate       float64
-	maxBreadcrumbs   int
-	attachStacktrace bool
-}
+import "github.com/getsentry/sentry-go"
 
-type Option func(*Wrapper)
+type Option func(*sentry.ClientOptions)
 
-func WithEnvironment(env string) Option {
-	return func(w *Wrapper) {
-		w.environment = env
+func WithEnvironment(environment string) Option {
+	return func(o *sentry.ClientOptions) {
+		o.Environment = environment
 	}
 }
 
 func WithRelease(release string) Option {
-	return func(w *Wrapper) {
-		w.release = release
-	}
-}
-
-func WithDebug(debug bool) Option {
-	return func(w *Wrapper) {
-		w.debug = debug
+	return func(o *sentry.ClientOptions) {
+		o.Release = release
 	}
 }
 
 func WithSampleRate(rate float64) Option {
-	return func(w *Wrapper) {
-		w.sampleRate = rate
+	return func(o *sentry.ClientOptions) {
+		o.SampleRate = rate
 	}
 }
 
-func WithMaxBreadcrumbs(max int) Option {
-	return func(w *Wrapper) {
-		w.maxBreadcrumbs = max
+func WithDebug(debug bool) Option {
+	return func(o *sentry.ClientOptions) {
+		o.Debug = debug
 	}
 }
 
-func WithAttachStacktrace(attach bool) Option {
-	return func(w *Wrapper) {
-		w.attachStacktrace = attach
+func WithTracesSampleRate(rate float64) Option {
+	return func(o *sentry.ClientOptions) {
+		o.TracesSampleRate = rate
 	}
 }
