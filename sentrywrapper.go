@@ -32,8 +32,8 @@ func New(dsn string, opts ...Option) (*SentryWrapper, error) {
 	return &SentryWrapper{client: client}, nil
 }
 
-func (s *SentryWrapper) Get() *sentry.Client {
-	return s.client
+func (sw *SentryWrapper) Get() *sentry.Client {
+	return sw.client
 }
 
 func (sw *SentryWrapper) SetUser(user sentry.User) {
