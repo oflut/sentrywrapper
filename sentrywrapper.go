@@ -28,8 +28,8 @@ func New(dsn string, options ...Option) (*Wrapper, error) {
 	return w, nil
 }
 
-func (w *Wrapper) Initialize() error {
-	return sentry.Init(sentry.ClientOptions{
+func (w *Wrapper) Initialize() (*sentry.Client, error) {
+	return sentry.NewClient(sentry.ClientOptions{
 		Dsn:              w.dsn,
 		Environment:      w.environment,
 		Release:          w.release,
