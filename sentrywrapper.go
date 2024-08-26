@@ -118,12 +118,11 @@ func (sw *SentryWrapper) WithContext(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (sw *SentryWrapper) Recover() {
-	if err := recover(); err != nil {
-		eventID := sw.client.Recover(err, nil, nil)
+func (sw *SentryWrapper) Recover(recoveredErr interface{}) {
+	if recoveredErr != nil && sw != nil && sw.client != nil {
+		eventID := sw.client.Recover(recoveredErr, nil, nil)
 		if eventID != nil {
-			log.Printf("Captured panic (ID: %s): %v", *eventID, err)
+			log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredErr)
 		}
-		panic(err)
 	}
 }
