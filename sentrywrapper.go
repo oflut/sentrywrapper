@@ -32,6 +32,9 @@ func New(dsn string, opts ...Option) (*SentryWrapper, error) {
 }
 
 func (sw *SentryWrapper) Get() *sentry.Client {
+	if sw == nil || sw.client == nil {
+		return nil
+	}
 	return sw.client
 }
 
