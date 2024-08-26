@@ -1,6 +1,8 @@
 package sentrywrapper
 
-import "github.com/getsentry/sentry-go"
+import (
+	"github.com/getsentry/sentry-go"
+)
 
 type Option func(*sentry.ClientOptions)
 
@@ -31,5 +33,11 @@ func WithDebug(debug bool) Option {
 func WithTracesSampleRate(rate float64) Option {
 	return func(o *sentry.ClientOptions) {
 		o.TracesSampleRate = rate
+	}
+}
+
+func WithMaxBreadcrumbs(max int) Option {
+	return func(o *sentry.ClientOptions) {
+		o.MaxBreadcrumbs = max
 	}
 }
