@@ -85,6 +85,19 @@ func (sw *SentryWrapper) CaptureMessage(message string) *sentry.EventID {
 	return sw.client.CaptureMessage(message, nil, nil)
 }
 
+func (sw *SentryWrapper) CaptureMessageWithContext(ctx context.Context, message string) *sentry.EventID {
+	if sw == nil || sw.client == nil || message == "" {
+		return nil
+	}
+
+	hub := sentry.GetHubFromContext(ctx)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
+
+	return hub.CaptureMessage(message)
+}
+
 func (sw *SentryWrapper) AddBreadcrumb(ctx context.Context, breadcrumb *sentry.Breadcrumb) {
 	if sw == nil || sw.client == nil || breadcrumb == nil {
 		return
