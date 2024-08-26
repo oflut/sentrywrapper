@@ -53,6 +53,21 @@ func (sw *SentryWrapper) SetUser(user sentry.User) {
 	})
 }
 
+func (sw *SentryWrapper) SetUserWithContext(ctx context.Context, user sentry.User) {
+	if sw == nil || sw.client == nil {
+		return
+	}
+
+	hub := sentry.GetHubFromContext(ctx)
+	if hub == nil {
+		hub = sentry.CurrentHub()
+	}
+
+	hub.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetUser(user)
+	})
+}
+
 func (sw *SentryWrapper) SetTag(key, value string) {
 	if sw == nil || sw.client == nil {
 		return
