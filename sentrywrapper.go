@@ -2,6 +2,7 @@ package sentrywrapper
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -14,6 +15,11 @@ type SentryWrapper struct {
 
 // New returns a wrapper type with given dsn and options
 func New(dsn string, opts ...Option) (*SentryWrapper, error) {
+	if dsn == "" {
+		return nil, errors.New("invalid DSN: cannot be empty")
+
+	}
+
 	clientOptions := sentry.ClientOptions{
 		Dsn: dsn,
 	}
@@ -39,32 +45,51 @@ func (sw *SentryWrapper) Get() *sentry.Client {
 }
 
 func (sw *SentryWrapper) SetUser(user sentry.User) {
+	if sw == nil || sw.client == nil {
+		return
+	}
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetUser(user)
 	})
 }
 
 func (sw *SentryWrapper) SetTag(key, value string) {
+	if sw == nil || sw.client == nil {
+		return
+	}
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTag(key, value)
 	})
 }
 
 func (sw *SentryWrapper) SetTags(tags map[string]string) {
+	if sw == nil || sw.client == nil {
+		return
+	}
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTags(tags)
 	})
 }
 
 func (sw *SentryWrapper) CaptureException(err error) *sentry.EventID {
+	if sw == nil || sw.client == nil || err == nil {
+		return nil
+	}
 	return sw.client.CaptureException(err, nil, nil)
 }
 
 func (sw *SentryWrapper) CaptureMessage(message string) *sentry.EventID {
+	if sw == nil || sw.client == nil || message == "" {
+		return nil
+	}
 	return sw.client.CaptureMessage(message, nil, nil)
 }
 
 func (sw *SentryWrapper) AddBreadcrumb(ctx context.Context, breadcrumb *sentry.Breadcrumb) {
+	if sw == nil || sw.client == nil || breadcrumb == nil {
+		return
+	}
+
 	hub := sentry.GetHubFromContext(ctx)
 	if hub == nil {
 		hub = sentry.CurrentHub()
@@ -73,10 +98,17 @@ func (sw *SentryWrapper) AddBreadcrumb(ctx context.Context, breadcrumb *sentry.B
 }
 
 func (sw *SentryWrapper) Flush(timeout time.Duration) bool {
+	if sw == nil || sw.client == nil {
+		return false
+	}
 	return sw.client.Flush(timeout)
 }
 
 func (sw *SentryWrapper) WithContext(ctx context.Context) context.Context {
+	if sw == nil || sw.client == nil {
+		return ctx
+	}
+
 	hub := sentry.GetHubFromContext(ctx)
 	if hub == nil {
 		hub = sentry.CurrentHub().Clone()
