@@ -37,27 +37,14 @@ func New(dsn string, opts ...Option) (*SentryWrapper, error) {
 	return &SentryWrapper{client: client}, nil
 }
 
-// Get retrieves the underlying Sentry client.
-func (sw *SentryWrapper) Get() *sentry.Client {
-	if sw == nil {
-		return nil
-	}
+// GetClient retrieves the underlying Sentry client.
+func (sw *SentryWrapper) GetClient() *sentry.Client {
 	return sw.client
 }
 
-// SetUser assigns the current user to the global Sentry scope.
-func (sw *SentryWrapper) SetUser(user sentry.User) {
-	if sw == nil || sw.client == nil {
-		return
-	}
-	sentry.ConfigureScope(func(scope *sentry.Scope) {
-		scope.SetUser(user)
-	})
-}
-
-// SetUserWithContext assigns the current user to the Sentry scope within the provided context.
-func (sw *SentryWrapper) SetUserWithContext(ctx context.Context, user sentry.User) {
-	if sw == nil || sw.client == nil {
+// SetUser assigns the current user to the Sentry scope within the provided context.
+func (sw *SentryWrapper) SetUser(ctx context.Context, user sentry.User) {
+	if sw.client == nil {
 		return
 	}
 
@@ -65,25 +52,14 @@ func (sw *SentryWrapper) SetUserWithContext(ctx context.Context, user sentry.Use
 	if hub == nil {
 		hub = sentry.CurrentHub()
 	}
-
 	hub.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetUser(user)
 	})
 }
 
-// SetTag sets a key-value pair tag on the global Sentry scope.
-func (sw *SentryWrapper) SetTag(key, value string) {
-	if sw == nil || sw.client == nil {
-		return
-	}
-	sentry.ConfigureScope(func(scope *sentry.Scope) {
-		scope.SetTag(key, value)
-	})
-}
-
-// SetTagWithContext sets a key-value pair tag on the Sentry scope within the provided context.
-func (sw *SentryWrapper) SetTagWithContext(ctx context.Context, key, value string) {
-	if sw == nil || sw.client == nil {
+// SetTag sets a key-value pair tag on the Sentry scope within the provided context.
+func (sw *SentryWrapper) SetTag(ctx context.Context, key, value string) {
+	if sw.client == nil {
 		return
 	}
 
@@ -91,25 +67,14 @@ func (sw *SentryWrapper) SetTagWithContext(ctx context.Context, key, value strin
 	if hub == nil {
 		hub = sentry.CurrentHub()
 	}
-
 	hub.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTag(key, value)
 	})
 }
 
-// SetTags sets multiple key-value pair tags on the global Sentry scope.
-func (sw *SentryWrapper) SetTags(tags map[string]string) {
-	if sw == nil || sw.client == nil {
-		return
-	}
-	sentry.ConfigureScope(func(scope *sentry.Scope) {
-		scope.SetTags(tags)
-	})
-}
-
-// SetTagsWithContext sets multiple key-value pair tags on the Sentry scope within the provided context.
-func (sw *SentryWrapper) SetTagsWithContext(ctx context.Context, tags map[string]string) {
-	if sw == nil || sw.client == nil {
+// SetTags sets multiple key-value pair tags on the Sentry scope within the provided context.
+func (sw *SentryWrapper) SetTags(ctx context.Context, tags map[string]string) {
+	if sw.client == nil {
 		return
 	}
 
@@ -117,36 +82,14 @@ func (sw *SentryWrapper) SetTagsWithContext(ctx context.Context, tags map[string
 	if hub == nil {
 		hub = sentry.CurrentHub()
 	}
-
 	hub.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTags(tags)
 	})
 }
 
-// CaptureException reports an error to Sentry.
-func (sw *SentryWrapper) CaptureException(err error, tags map[string]string) *sentry.EventID {
-	if sw == nil || sw.client == nil || err == nil {
-		return nil
-	}
-
-	event := sentry.NewEvent()
-	event.Exception = []sentry.Exception{{
-		Value:      err.Error(),
-		Type:       "error",
-		Stacktrace: sentry.NewStacktrace(),
-	}}
-	event.Level = sentry.LevelError
-
-	if tags != nil {
-		event.Tags = tags
-	}
-
-	return sw.client.CaptureEvent(event, nil, nil)
-}
-
-// CaptureExceptionWithContext reports an error to Sentry using the Sentry hub within the provided context.
-func (sw *SentryWrapper) CaptureExceptionWithContext(ctx context.Context, err error, tags map[string]string) *sentry.EventID {
-	if sw == nil || sw.client == nil || err == nil {
+// CaptureException reports an error to Sentry using the Sentry hub within the provided context.
+func (sw *SentryWrapper) CaptureException(ctx context.Context, err error, tags map[string]string) *sentry.EventID {
+	if sw.client == nil || err == nil {
 		return nil
 	}
 
@@ -170,26 +113,9 @@ func (sw *SentryWrapper) CaptureExceptionWithContext(ctx context.Context, err er
 	return hub.CaptureEvent(event)
 }
 
-// CaptureMessage sends a message to Sentry.
-func (sw *SentryWrapper) CaptureMessage(message string, tags map[string]string) *sentry.EventID {
-	if sw == nil || sw.client == nil || message == "" {
-		return nil
-	}
-
-	event := sentry.NewEvent()
-	event.Message = message
-	event.Level = sentry.LevelInfo // Default level for messages
-
-	if tags != nil {
-		event.Tags = tags
-	}
-
-	return sw.client.CaptureEvent(event, nil, nil)
-}
-
-// CaptureMessageWithContext sends a message to Sentry using the Sentry hub within the provided context.
-func (sw *SentryWrapper) CaptureMessageWithContext(ctx context.Context, message string, tags map[string]string) *sentry.EventID {
-	if sw == nil || sw.client == nil || message == "" {
+// CaptureMessage sends a message to Sentry using the Sentry hub within the provided context.
+func (sw *SentryWrapper) CaptureMessage(ctx context.Context, message string, tags map[string]string) *sentry.EventID {
+	if sw.client == nil || message == "" {
 		return nil
 	}
 
@@ -211,7 +137,7 @@ func (sw *SentryWrapper) CaptureMessageWithContext(ctx context.Context, message 
 
 // AddBreadcrumb adds a breadcrumb to the Sentry scope within the provided context.
 func (sw *SentryWrapper) AddBreadcrumb(ctx context.Context, breadcrumb *sentry.Breadcrumb) {
-	if sw == nil || sw.client == nil || breadcrumb == nil {
+	if sw.client == nil || breadcrumb == nil {
 		return
 	}
 
@@ -224,15 +150,15 @@ func (sw *SentryWrapper) AddBreadcrumb(ctx context.Context, breadcrumb *sentry.B
 
 // Flush waits for all buffered events to be sent to Sentry, blocking up to the given timeout duration.
 func (sw *SentryWrapper) Flush(timeout time.Duration) bool {
-	if sw == nil || sw.client == nil {
+	if sw.client == nil {
 		return false
 	}
 	return sw.client.Flush(timeout)
 }
 
-// WithContext returns a new context with a Sentry hub bound to it, ensuring the context is tracked.
+// WithContext returns a new context with a Sentry hub bound to it.
 func (sw *SentryWrapper) WithContext(ctx context.Context) context.Context {
-	if sw == nil || sw.client == nil {
+	if sw.client == nil {
 		return ctx
 	}
 
