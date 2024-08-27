@@ -124,15 +124,28 @@ func (sw *SentryWrapper) SetTagsWithContext(ctx context.Context, tags map[string
 }
 
 // CaptureException reports an error to Sentry.
-func (sw *SentryWrapper) CaptureException(err error) *sentry.EventID {
+func (sw *SentryWrapper) CaptureException(err error, tags map[string]string) *sentry.EventID {
 	if sw == nil || sw.client == nil || err == nil {
 		return nil
 	}
-	return sw.client.CaptureException(err, nil, nil)
+
+	event := sentry.NewEvent()
+	event.Exception = []sentry.Exception{{
+		Value:      err.Error(),
+		Type:       "error",
+		Stacktrace: sentry.NewStacktrace(),
+	}}
+	event.Level = sentry.LevelError
+
+	if tags != nil {
+		event.Tags = tags
+	}
+
+	return sw.client.CaptureEvent(event, nil, nil)
 }
 
 // CaptureExceptionWithContext reports an error to Sentry using the Sentry hub within the provided context.
-func (sw *SentryWrapper) CaptureExceptionWithContext(ctx context.Context, err error) *sentry.EventID {
+func (sw *SentryWrapper) CaptureExceptionWithContext(ctx context.Context, err error, tags map[string]string) *sentry.EventID {
 	if sw == nil || sw.client == nil || err == nil {
 		return nil
 	}
@@ -142,19 +155,40 @@ func (sw *SentryWrapper) CaptureExceptionWithContext(ctx context.Context, err er
 		hub = sentry.CurrentHub()
 	}
 
-	return hub.CaptureException(err)
+	event := sentry.NewEvent()
+	event.Exception = []sentry.Exception{{
+		Value:      err.Error(),
+		Type:       "error",
+		Stacktrace: sentry.NewStacktrace(),
+	}}
+	event.Level = sentry.LevelError
+
+	if tags != nil {
+		event.Tags = tags
+	}
+
+	return hub.CaptureEvent(event)
 }
 
 // CaptureMessage sends a message to Sentry.
-func (sw *SentryWrapper) CaptureMessage(message string) *sentry.EventID {
+func (sw *SentryWrapper) CaptureMessage(message string, tags map[string]string) *sentry.EventID {
 	if sw == nil || sw.client == nil || message == "" {
 		return nil
 	}
-	return sw.client.CaptureMessage(message, nil, nil)
+
+	event := sentry.NewEvent()
+	event.Message = message
+	event.Level = sentry.LevelInfo // Default level for messages
+
+	if tags != nil {
+		event.Tags = tags
+	}
+
+	return sw.client.CaptureEvent(event, nil, nil)
 }
 
 // CaptureMessageWithContext sends a message to Sentry using the Sentry hub within the provided context.
-func (sw *SentryWrapper) CaptureMessageWithContext(ctx context.Context, message string) *sentry.EventID {
+func (sw *SentryWrapper) CaptureMessageWithContext(ctx context.Context, message string, tags map[string]string) *sentry.EventID {
 	if sw == nil || sw.client == nil || message == "" {
 		return nil
 	}
@@ -164,7 +198,15 @@ func (sw *SentryWrapper) CaptureMessageWithContext(ctx context.Context, message 
 		hub = sentry.CurrentHub()
 	}
 
-	return hub.CaptureMessage(message)
+	event := sentry.NewEvent()
+	event.Message = message
+	event.Level = sentry.LevelInfo // Default level for messages
+
+	if tags != nil {
+		event.Tags = tags
+	}
+
+	return hub.CaptureEvent(event)
 }
 
 // AddBreadcrumb adds a breadcrumb to the Sentry scope within the provided context.
