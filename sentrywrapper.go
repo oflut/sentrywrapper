@@ -177,7 +177,13 @@ func (sw *SentryWrapper) Recover(recoveredError interface{}) {
 		return
 	}
 
-	if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
-		log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
-	}
+	timestamp := time.Now().Format(time.RFC3339)
+
+	sentry.CurrentHub().WithScope(func(scope *sentry.Scope) {
+		scope.SetTag("timestamp", timestamp)
+
+		if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
+			log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
+		}
+	})
 }
