@@ -172,7 +172,7 @@ func (sw *SentryWrapper) WithContext(ctx context.Context) context.Context {
 }
 
 // Recover captures and logs a panic, ensuring it is reported to Sentry before re-panicking.
-func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}, additionalTags ...map[string]string) {
+func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}, additionalTags map[string]interface{}) {
 	if recoveredError == nil || sw == nil || sw.client == nil {
 		return
 	}
@@ -181,8 +181,11 @@ func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}
 
 	sw.SetTag(ctx, "timestamp", timestamp)
 
-	for _, additionalTag := range additionalTags {
-		sw.SetTags(ctx, additionalTag)
+	for key, value := range additionalTags {
+		if strValue, ok := value.(string); ok {
+			sw.SetTag(ctx, key, strValue)
+		}
+
 	}
 
 	if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
