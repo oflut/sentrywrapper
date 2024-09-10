@@ -177,19 +177,20 @@ func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}
 		return
 	}
 
-	timestamp := time.Now().Format(time.RFC3339)
+	sentry.WithScope(func(scope *sentry.Scope) {
+		timestamp := time.Now().Format(time.RFC3339)
 
-	sw.SetTag(ctx, "timestamp", timestamp)
+		sw.SetTag(ctx, "timestamp", timestamp)
 
-	for key, value := range additionalTags {
-		if strValue, ok := value.(string); ok {
-			sw.SetTag(ctx, key, strValue)
+		for key, value := range additionalTags {
+			if strValue, ok := value.(string); ok {
+				sw.SetTag(ctx, key, strValue)
+			}
+
 		}
 
-	}
-
-	if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
-		log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
-	}
-
+		if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
+			log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
+		}
+	})
 }
