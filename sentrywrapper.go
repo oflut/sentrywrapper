@@ -177,7 +177,8 @@ func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}
 		return
 	}
 
-	sentry.WithScope(func(scope *sentry.Scope) {
+	hub := sentry.GetHubFromContext(ctx)
+	hub.WithScope(func(scope *sentry.Scope) {
 		timestamp := time.Now().Format(time.RFC3339)
 
 		sw.SetTag(ctx, "timestamp", timestamp)
@@ -193,4 +194,5 @@ func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}
 			log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
 		}
 	})
+
 }
