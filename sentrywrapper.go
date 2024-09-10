@@ -172,18 +172,17 @@ func (sw *SentryWrapper) WithContext(ctx context.Context) context.Context {
 }
 
 // Recover captures and logs a panic, ensuring it is reported to Sentry before re-panicking.
-func (sw *SentryWrapper) Recover(recoveredError interface{}) {
+func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}) {
 	if recoveredError == nil || sw == nil || sw.client == nil {
 		return
 	}
 
 	timestamp := time.Now().Format(time.RFC3339)
 
-	sentry.CurrentHub().WithScope(func(scope *sentry.Scope) {
-		scope.SetTag("timestamp", timestamp)
+	sw.SetTag(ctx, "timestamp", timestamp)
 
-		if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
-			log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
-		}
-	})
+	if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
+		log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
+	}
+
 }
