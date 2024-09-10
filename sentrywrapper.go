@@ -190,7 +190,7 @@ func (sw *SentryWrapper) Recover(ctx context.Context, recoveredError interface{}
 
 		}
 
-		if eventID := sw.client.Recover(recoveredError, nil, nil); eventID != nil {
+		if eventID := hub.Recover(recoveredError); eventID != nil {
 			log.Printf("Captured panic (ID: %s): %v", *eventID, recoveredError)
 		}
 	})
